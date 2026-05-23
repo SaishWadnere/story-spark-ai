@@ -1,162 +1,4 @@
-import AuthLayout from "../auth/AuthLayout";
-import { useForm, SubmitHandler } from "react-hook-form";
-import SSInput from "../ui-component/ss-input/ss-input";
-import SSButton from "../ui-component/ss-button/ss-button";
-import { useState } from "react";
-import { storeUserInfo } from "../../services/auth.service";
-import toast, { Toaster } from "react-hot-toast";
-import {
-  useEmailVerifyMutation,
-  useVerifyOtpMutation,
-} from "../../redux/apis/otp.verify.api";
-import { useRegisterUserMutation } from "../../redux/apis/auth.api";
-import { useNavigate } from "react-router-dom";
-
-interface IRegisterInfo {
-  name: string;
-  email: string;
-  password: string;
-}
-
-interface Inputs extends IRegisterInfo {
-  confirmPassword: string;
-  otp: string;
-}
-
-const getPasswordError = (password: string) => {
-  if (password.length < 8) {
-    return "Password must be at least 8 characters long";
-  }
-  if (!/[A-Z]/.test(password)) {
-    return "Password must contain at least one uppercase letter";
-  }
-  if (!/[a-z]/.test(password)) {
-    return "Password must contain at least one lowercase letter";
-  }
-  if (!/[0-9]/.test(password)) {
-    return "Password must contain at least one number";
-  }
-  if (!/[^A-Za-z0-9]/.test(password)) {
-    return "Password must contain at least one special character";
-  }
-
-  return "";
-};
-
-const SignUpComponent = () => {
-  const navigate = useNavigate();
-  const [emailVerify] = useEmailVerifyMutation();
-  const [verifyOtp] = useVerifyOtpMutation();
-  const [registerUser] = useRegisterUserMutation();
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<Inputs>({ mode: "onChange" });
-  const [isBusy, setIsBusy] = useState<boolean>(false);
-  const [showOtpField, setShowOtpField] = useState<boolean>(false);
-  const [registerInfo, setRegisterInfo] = useState<IRegisterInfo>();
-  const [expiredAt, setExpiredAt] = useState(0);
-  const [verificationToken, setVerificationToken] = useState<string>("");
-
-  const password = watch("password");
-  const confirmPassword = watch("confirmPassword");
-  const otp = watch("otp");
-
-  const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    if (data) {
-      const user = {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-      };
-      const otpPayload = {
-        name: data.name,
-        email: data.email,
-      };
-      if (password !== confirmPassword) {
-        toast.error("Passwords do not match!");
-        return;
-      }
-      const passwordError = getPasswordError(data.password);
-      if (passwordError) {
-        toast.error(passwordError);
-        return;
-      }
-      setIsBusy(true);
-      try {
-        const res = await emailVerify({ ...otpPayload }).unwrap();
-        if (res?.data) {
-          const { expiresAt } = res.data;
-          setExpiredAt(new Date(expiresAt).getTime());
-          toast.success("OTP sent to your email");
-          setRegisterInfo(user);
-          setShowOtpField(true);
-        }
-      } catch (error) {
-        const message =
-          (error as { data?: Array<{ message?: string }> })?.data?.[0]?.message ||
-          "Failed to send OTP. Check backend .env email credentials.";
-        toast.error(message);
-        console.log("error: ", error);
-      } finally {
-        setIsBusy(false);
-      }
-    }
-  };
-
-  const handleOtpValidation = async () => {
-    const enteredOtp = otp?.trim();
-    if (!enteredOtp) {
-      toast.error("Please enter OTP");
-      return;
-    }
-    if (!registerInfo) {
-      toast.error("Something went wrong. Please restart the process.");
-      return;
-    }
-    if (Date.now() > expiredAt) {
-      toast.error("OTP expired. Please request a new one.");
-      return;
-    }
-    setIsBusy(true);
-    try {
-      const otpResponse = await verifyOtp({ 
-        email: registerInfo.email, 
-        otp: enteredOtp 
-      }).unwrap();
-      
-      // Store the verification token returned from OTP verification
-      if (otpResponse?.data?.verificationToken) {
-        setVerificationToken(otpResponse.data.verificationToken);
-        
-        // Now register user with verification token
-        const res = await registerUser({ 
-          ...registerInfo,
-          verificationToken: otpResponse.data.verificationToken 
-        }).unwrap();
-        
-        if (res.data.accessToken) {
-          toast.success("OTP validated successfully!");
-          storeUserInfo({ accessToken: res.data.accessToken });
-          navigate("/");
-        }
-      } else {
-        throw new Error("No verification token received");
-      }
-    } catch (err: unknown) {
-      const message =
-        (err as { data?: Array<{ message?: string }> })?.data?.[0]?.message ||
-        "OTP verification failed. Please check the code and try again.";
-      toast.error(message);
-      console.log("error: ", err);
-    } finally {
-      setIsBusy(false);
-    }
-  };
-
-  return (
+return (
   <>
     <AuthLayout
       title="Create Account"
@@ -247,6 +89,7 @@ const SignUpComponent = () => {
           </form>
         ) : (
           <div className="space-y-4">
+
             <SSInput
               label="OTP"
               name="otp"
@@ -262,6 +105,7 @@ const SignUpComponent = () => {
               onClick={handleOtpValidation}
               isLoading={isBusy}
             />
+
           </div>
         )}
 
@@ -282,6 +126,3 @@ const SignUpComponent = () => {
     <Toaster position="top-right" reverseOrder={false} />
   </>
 );
-};
-
-export default SignUpComponent;
