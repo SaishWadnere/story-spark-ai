@@ -267,7 +267,7 @@ const FooterComponent = () => {
 
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-slate-400/80 pr-10 sm:pr-12 lg:pr-16">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2.5 gap-y-1">
-            <span className="text-slate-400/80">&copy;  {new Date().getFullYear()} StorySparkAI. All rights reserved.</span>
+            <span className="text-slate-400/80">&copy; {new Date().getFullYear()} StorySparkAI. All rights reserved.</span>
             <span className="hidden sm:inline text-white/[0.12]">|</span>
             <span className="italic text-slate-400/60">Crafted for storytellers</span>
           </div>
