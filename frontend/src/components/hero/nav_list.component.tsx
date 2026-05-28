@@ -12,7 +12,7 @@ const NavListComponent: React.FC = () => {
   const navigate = useNavigate();
 
   const getLinkClass = (isActive: boolean) =>
-    `flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold tracking-wide transition-all duration-300 border whitespace-nowrap ${isActive
+    `inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-3 py-2 text-center text-sm font-semibold leading-tight tracking-wide transition-all duration-300 ${isActive
       ? "bg-custom/10 text-slate-900 dark:text-white border-custom/35 shadow-[0_0_15px_rgba(59,130,246,0.25)]"
       : "text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-200/60 dark:hover:bg-white/5 hover:text-custom"
     }`;
@@ -95,7 +95,7 @@ const NavListComponent: React.FC = () => {
           </div>
 
           {/* Navigation Links */}
-          <div className="hidden lg:flex flex-1 items-center justify-center space-x-1 xl:space-x-2 px-2">
+          <div className="hidden lg:flex flex-1 items-center justify-center space-x-1.5 xl:space-x-3 px-4">
             <NavLink to="/" end className={({ isActive }) => getLinkClass(isActive)}>
               {({ isActive }) => renderNavContent("HOME", isActive)}
             </NavLink>
@@ -239,7 +239,7 @@ const NavListComponent: React.FC = () => {
             <NavLink to="/analytics" className={({ isActive }) => getMobileLinkClass(isActive)}>
               {({ isActive }) => (
                 <>
-                  {isActive && <span className="w-2 h-2 bg-custom rounded-full mr-2.5 animate-pulse shadow-[0_0_8px_#3b82f6]" />}
+                  {isActive && <span className="h-2 w-2 shrink-0 rounded-full bg-custom animate-pulse shadow-[0_0_8px_#3b82f6]" />}
                   ANALYTICS
                 </>
               )}
@@ -247,7 +247,7 @@ const NavListComponent: React.FC = () => {
             <NavLink to="/collab" className={({ isActive }) => getMobileLinkClass(isActive)}>
               {({ isActive }) => (
                 <>
-                  {isActive && <span className="w-2 h-2 bg-custom rounded-full mr-2.5 animate-pulse shadow-[0_0_8px_#3b82f6]" />}
+                  {isActive && <span className="h-2 w-2 shrink-0 rounded-full bg-custom animate-pulse shadow-[0_0_8px_#3b82f6]" />}
                   COLLAB
                 </>
               )}
